@@ -2,5 +2,35 @@ Project 6 README File
 
 Cody Riewerts
 
+GIT Repository:
+https://github.com/rieweco/OSproject6.git
+
+type make
+RUN: ./oss
+HELP: ./oss -h
+
+output goes to file named 'logfile' 
+the name of logfile can be changed using -l command
+change number of user processes by -u option
+--------------------------------------------------------
+
+
+--------------------------------------------------------
+added structs to node.h, got getopt done in oss.c, initialized user.c.
+setting up spawn loop conditions and logfile info.
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Committer: Cody Riewerts <o2-riewerts@hoare7.cs.umsl.edu>
+#
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       new file:   node.h
+#       new file:   oss.c
+#       new file:   user.c
+--------------------------------------------------------
+
 
 
