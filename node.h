@@ -6,10 +6,6 @@
 #define CLOCK_KEY 1400
 #define PAGE_KEY 1000
 
-//semaphore vars
-#define S_ID "/semaphore"
-#define S_PERMISSIONS (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)
-
 //struct clock: holds seconds and nanoseconds
 typedef struct Clock
 {

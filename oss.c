@@ -91,10 +91,48 @@ int main(int argc, char *argv[])
 
         }
 
+	//print out prog settings
+	programRunSettingsPrint(filename,runtime,verboseFlag,maxUserProcesses);
+
+	//set up signal handler
+	if(signal(SIGALRM, int_Handler) == SIG_ERR)
+	{
+		perror("SINGAL ERROR: SIGALRM failed catch!\n");
+		exit(errno);
+	}
+
+	alarm(runtime);
+
+	//set up shared memory for clock
+	clockMemoryID = shmget(CLOCK_KEY, sizeof(Clock), IPC_CREAT | 0666);
+	if(clockMemoryID < 0)
+	{
+		perror("Creating clock shared memory Failed!!\n");
+		exit(errno);
+	}
+
+	//attach clock
+	sharedClock = shmat(clockMemoryID, NULL, 0);
+
+	//initialize clock
+	sharedClock->seconds = 0;
+	sharedClock->nanoseconds = 0;
+	
+	printf("OSS: CLOCK: sec: %d nano: %d req: %d\n",sharedClock->seconds,sharedClock->nanoseconds,sharedClock->numberOfRequests);
+
+	//initialize logfile
+	logfile = fopen(filename, "w");
+	fprintf(logfile, "OSS: Initializing Logfile!\n"); fflush(logfile);
+	fclose(logfile);
+
+	//reopen logfile, set to append
+	logfile = fopen(filename, "a");
+	fprintf(logfile, "OSS: Beginning Memory Management Protocol...\n"); fflush(logfile);
 	
 
 	
 
+	
 
 
 
@@ -145,6 +183,7 @@ int main(int argc, char *argv[])
 
 
 
+	return 0;
 
 }
 
