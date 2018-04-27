@@ -32,4 +32,20 @@ setting up spawn loop conditions and logfile info.
 #       new file:   user.c
 --------------------------------------------------------
 
+shared memory set up, and while loop started.
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Committer: Cody Riewerts <o2-riewerts@hoare7.cs.umsl.edu>
+#
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       modified:   README
+#       modified:   node.h
+#       modified:   oss.c
+#
+----------------------------------------------------------
+
 
