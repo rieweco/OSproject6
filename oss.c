@@ -33,7 +33,6 @@ int userProcesses;
 Frames *frames[256];
 
 
-
 //main
 int main(int argc, char *argv[])
 {
@@ -41,6 +40,7 @@ int main(int argc, char *argv[])
 	signal(SIGINT, int_Handler);
 
 	//declare vars
+	pid_t pid;
 	int spawnTime;
 	int spawnSeconds;
 	int spawnNanoseconds;
@@ -50,8 +50,14 @@ int main(int argc, char *argv[])
 	int maxProcesses;
         filename = DEFAULT_FILENAME;
         int runtime = DEFAULT_RUNTIME;
-	int maxUserProcesses = DEFAULT_USER_PROCESSES;
-	
+	int maxUserProcesses = MAX_RUNNING_PROCESSES;
+	int activeUserProcesses = 0;	
+
+	//statistics vars
+	int memAccesses = 0;
+	int pageFaults = 0;
+	int segFaults = 0;	
+
 	srand(time(NULL));
 
 	//read command line options
@@ -129,8 +135,72 @@ int main(int argc, char *argv[])
 	logfile = fopen(filename, "a");
 	fprintf(logfile, "OSS: Beginning Memory Management Protocol...\n"); fflush(logfile);
 	
-
 	
+	//while loop
+	while(((sharedClock->seconds * 1000000000) + sharedClock->nanoseconds) < 2000000000)
+	{
+		int currentTime = ((sharedClock->seconds * 1000000000) + sharedClock->nanoseconds);
+		//check current time to spawn new user process
+		if(currentTime >= spawnTime)
+		{
+			if(activeUserProcesses < 18)
+			{
+				if(verboseFlag == 1)
+				{
+					fprintf(logfile, "OSS: Time to spawn a new User Process!\n"); fflush(logfile);
+				}
+				
+				
+				//spawn user
+				pid = fork();
+				
+				//failed to fork()
+				if(pid < 0)
+				{
+					perror("Failed to fork() user process!!\n");
+					return 1;
+				}
+				
+				//parent process
+				else if(pid > 0)
+				{
+					activeUserProcesses++;
+					fprintf(logfile, "OSS: User process spawned! Number of User Processes now: %d\n",activeUserProcesses);
+					fflush(logfile);
+					
+				}
+
+				//user process
+				else
+				{
+					char numberBuffer[10];
+					snprintf(numberBuffer, 10,"%d", activeUserProcesses);
+					execl("./user","./user",numberBuffer,NULL);
+				}
+
+				
+				
+			}	
+	
+		}
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	}
+		
 
 	
 
