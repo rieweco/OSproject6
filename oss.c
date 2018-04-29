@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
         int runtime = DEFAULT_RUNTIME;
 	int maxUserProcesses = MAX_RUNNING_PROCESSES;
 	int activeUserProcesses = 0;	
+	int procArray[18];
 
 	//statistics vars
 	int memAccesses = 0;
@@ -135,6 +136,11 @@ int main(int argc, char *argv[])
 	logfile = fopen(filename, "a");
 	fprintf(logfile, "OSS: Beginning Memory Management Protocol...\n"); fflush(logfile);
 	
+	int i;
+	for(i = 0; i < 18; i++)
+	{
+		procArray[i] = 0;
+	}
 	
 	//while loop
 	while(((sharedClock->seconds * 1000000000) + sharedClock->nanoseconds) < 2000000000)
@@ -145,6 +151,20 @@ int main(int argc, char *argv[])
 		{
 			if(activeUserProcesses < 18)
 			{
+				int j;
+				for(j = 0; j < 18; j++)
+				{
+					if(procArray[j] == 0)
+					{
+						printf("Free spot in array. index = %d\n",j);
+						procArray[j] = 1;
+					}
+					else
+					{
+						printf("No free spots available!\n");
+					}
+		
+				}
 				if(verboseFlag == 1)
 				{
 					fprintf(logfile, "OSS: Time to spawn a new User Process!\n"); fflush(logfile);
@@ -187,7 +207,7 @@ int main(int argc, char *argv[])
 
 
 
-
+		
 
 
 
