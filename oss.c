@@ -255,6 +255,7 @@ int main(int argc, char *argv[])
 				//look for request pageNumber and offset
 				else
 				{
+					int foundFlag = 0;
 					int q;
 					for(q = 0; q < 256; q++)
 					{		
@@ -262,21 +263,48 @@ int main(int argc, char *argv[])
 						{
 							if(frames[q].pageNumber == messageChk.ref.pageNumber && frames[q].offset == messageChk.ref.offset)
 							{
+								foundFlag = 1;
 								fprintf(logfile,"OSS: Request page# and offset found!\n"); fflush(logfile);
 							}
 						}
 					}
 
-					fprintf(logfile, "OSS: Process %ld is Requesting Page: %d with offset: %d.\n", messageChk.pid, messageChk.ref.pageNumber, messageChk.ref.offset); fflush(logfile);	
+					if(foundFlag == 1)
+					{
+						fprintf(logfile, "OSS: Process %ld is Requesting Page: %d with offset: %d.\n", messageChk.pid, messageChk.ref.pageNumber, messageChk.ref.offset); fflush(logfile);	
+						Message granted;
+						granted.type = messageChk.index;
+						
+						//send message to child
+						if(msgsnd(msgQueue, granted, sizeof(Message),1) == -1)
+						{
+							fprintf(logfile, "OSS: Failed to send message to child process!\n"); fflush(logfile);
+							return -1;
+						}
+						else
+						{
+							fprintf(logfile,"OSS: Sending msg to allow Process %ld's request for page %d with offset %d.\n",messageChk.pid, messageChk.pageNumber, messageChk.offset); fflush(logfile);
+						}	
+					}
 
+					for(q = 0; q < 256; q++)
+					{
+						if(frames[q].used != -1)
+						{
+							if(frames[q].pageNumber == messageChk.ref.pageNumber && frames[q].offset == messageChk[q].ref.offset)
+							{
+								
+							}
+						}
+					}
+				}
+	
 			}
 	
+
+
+
 		}
-	
-
-
-
-		
 
 
 
