@@ -50,6 +50,7 @@ Queue* suspendedQ;
 int msgQueue;
 int spawnedProcesses;
 int haveMsg;
+int verboseFlag;
 
 //main
 int main(int argc, char *argv[])
@@ -99,7 +100,8 @@ int main(int argc, char *argv[])
 					maxUserProcesses = maxProcesses;
 					fprintf(stderr, "Max User Processes set to: %d\n", maxUserProcesses);
 				}
-				else 
+				else
+				{ 
 					fprintf(stderr, "Max Users must be more than 0!");
 					exit(EXIT_FAILURE);
 				}

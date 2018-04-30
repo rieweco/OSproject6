@@ -121,11 +121,11 @@ int main(int argc, char *argv[])
 				newMessage.index = processNum;
 				newMessage.terminate = 0;
 				newMessage.ref.pageNumber = processNum;
-				newMessage.ref.offset = rand() % 20;
+				newMessage.ref.offset = rand() % 32;
 				newMessage.pid = getpid();
 				newMessage.dirty = 0;
 			
-				if(newMessage.ref.offset > 18)
+				if(newMessage.ref.offset > 28)
 				{
 					newMessage.dirty = 1;
 				}
