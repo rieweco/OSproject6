@@ -79,5 +79,20 @@ need to finish user.c and im done!
 #
 -----------------------------------------------------------
 
+final updates. 
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Committer: Cody Riewerts <o2-riewerts@hoare7.cs.umsl.edu>
+#
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       new file:   Makefile
+#       modified:   oss.c
+#       modified:   user.c
+#
+-----------------------------------------------------------
 
 
