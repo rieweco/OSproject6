@@ -16,6 +16,14 @@ typedef struct Clock
 }
 Clock;
 
+//sruct pages: individual pages - contains frame location, dirty bit flag, and if it is in use
+typedef struct Pages
+{
+        int location;
+        int dirty;
+        int used;
+}
+Pages;
 
 //struct Page Table: 2d array to hold 18 processes with 32 pages each
 typedef struct PageTable
@@ -25,14 +33,13 @@ typedef struct PageTable
 }
 PageTable;
 
-//struct Pages: individual pages- contains frame location, dirty bit flag, and if it is in use
-typedef struct Pages
+//struct for page reference requests
+typedef struct Reference
 {
-	int location;
-	int dirty;
-	int used;
+        int pageNumber;
+        int offset;
 }
-Pages;
+Reference;
 
 //struct for message to pass between master/child.
 //contains: pid, index,dirty flag, msgtype,termination flag, ...
@@ -46,14 +53,6 @@ typedef struct Message
 	Reference ref;
 }
 Message;
-
-//struct for page references
-typedef struct Reference
-{
-	int pageNumber;
-	int offset;
-}
-Reference;
 
 //struct for Frames
 typedef struct Frames

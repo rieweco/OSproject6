@@ -25,7 +25,6 @@
 //function definitions
 void printFrames();
 void suspendedCheck(Queue* queue);
-int getSpawnTime();
 void int_Handler(int sig);
 void alarm_Handler(int sig);
 int detachAndRemove(int shmid, void *shmaddr);
@@ -35,8 +34,8 @@ void helpOptionPrint();
 struct Queue* generateQueue(unsigned capacity);
 int isFull(struct Queue* queue);
 int isEmpty(struct Queue* queue);
-void enqueue(struct Queue* queue, int item);
-int dequeue(struct Queue* queue);
+void enqueue(struct Queue* queue, Message item);
+Message dequeue(struct Queue* queue);
 int front(struct Queue* queue);
 
 
@@ -51,6 +50,7 @@ int msgQueue;
 int spawnedProcesses;
 int haveMsg;
 int verboseFlag;
+int frameIndex;
 
 //main
 int main(int argc, char *argv[])
@@ -60,10 +60,9 @@ int main(int argc, char *argv[])
 
 	//declare vars
 	pid_t pid;
+	frameIndex = 0;
 	spawnedProcesses = 0;
 	int spawnTime;
-	int spawnSeconds;
-	int spawnNanoseconds;
         int clockMemoryID;
         int opt = 0;
         int wait_status;
@@ -147,7 +146,7 @@ int main(int argc, char *argv[])
 	sharedClock->seconds = 0;
 	sharedClock->nanoseconds = 0;
 	
-	printf("OSS: CLOCK: sec: %d nano: %d req: %d\n",sharedClock->seconds,sharedClock->nanoseconds,sharedClock->numberOfRequests);
+	printf("OSS: CLOCK: sec: %d nano: %d\n",sharedClock->seconds,sharedClock->nanoseconds);
 			
 	
 	//initialize request msg q
@@ -254,18 +253,18 @@ int main(int argc, char *argv[])
 					int q;
 					for(q = 0; q < 256; q++)
 					{
-						if(frames[q].pageNumber == messageChk.index)
+						if(frames[q]->pageNumber == messageChk.index)
 						{
 							//set frame to terminate
-							frames.dirty = 0;
-							frames.used = -1;
+							frames[q]->dirty = 0;
+							frames[q]->used = -1;
 						}
 					}
 			
 					fprintf(logfile, "OSS: Child %ld has completed its run and terminated!\n",messageChk.pid); fflush(logfile);
 					activeUserProcesses--;
 					procArray[messageChk.index] = 0;
-					if(verbose ==1)
+					if(verboseFlag == 1)
 					{
 						printFrames();
 					}
@@ -281,9 +280,9 @@ int main(int argc, char *argv[])
 					int q;
 					for(q = 0; q < 256; q++)
 					{		
-						if(frames[q].used != -1)
+						if(frames[q]->used != -1)
 						{
-							if(frames[q].pageNumber == messageChk.ref.pageNumber && frames[q].offset == messageChk.ref.offset)
+							if(frames[q]->pageNumber == messageChk.ref.pageNumber && frames[q]->offset == messageChk.ref.offset)
 							{
 								foundFlag = 1;
 								fprintf(logfile,"OSS: Request page# and offset found!\n"); fflush(logfile);
@@ -298,29 +297,29 @@ int main(int argc, char *argv[])
 						granted.type = messageChk.index;
 						
 						//send message to child
-						if(msgsnd(msgQueue, granted, sizeof(Message),1) == -1)
+						if(msgsnd(msgQueue, &granted, sizeof(Message),1) == -1)
 						{
 							fprintf(logfile, "OSS: Failed to send message to child process!\n"); fflush(logfile);
 							return -1;
 						}
 						else
 						{
-							fprintf(logfile,"OSS: Sending msg to allow Process %ld's request for page %d with offset %d.\n",messageChk.pid, messageChk.pageNumber, messageChk.offset); fflush(logfile);
+							fprintf(logfile,"OSS: Sending msg to allow Process %ld's request for page %d with offset %d.\n",messageChk.pid, messageChk.ref.pageNumber, messageChk.ref.offset); fflush(logfile);
 						}	
 					
 
 						for(q = 0; q < 256; q++)
 						{
-							if(frames[q].used != -1)
+							if(frames[q]->used != -1)
 							{
-								if(frames[q].pageNumber == messageChk.ref.pageNumber && frames[q].offset == messageChk[q].ref.offset)
+								if(frames[q]->pageNumber == messageChk.ref.pageNumber && frames[q]->offset == messageChk.ref.offset)
 								{
 									//set frame to used/dirty based on message
-									if(messageChk[q].dirty == 1)
+									if(messageChk.dirty == 1)
 									{
-										frames[q].dirty = 1;
+										frames[q]->dirty = 1;
 									}	
-									frames[q].used = 1;
+									frames[q]->used = 1;
 								}
 							}
 						}
@@ -328,8 +327,8 @@ int main(int argc, char *argv[])
 					//reference not found -- add request to queue
 					else
 					{
-						enqueue(msgQueue, messageChk);
-						if(verbose == 1)
+						enqueue(suspendedQ, messageChk);
+						if(verboseFlag == 1)
 						{
 							fprintf(logfile, "OSS: Reference not found! Adding Reference to Queue!\n"); fflush(logfile);
 						}
@@ -358,11 +357,11 @@ void printFrames()
 	//dirty loop
 	for(p = 0; p < 256; p++)
 	{
-		if(frames[p].dirty == 0)
+		if(frames[p]->dirty == 0)
 		{
 			fprintf(logfile, "U"); fflush(logfile);
 		}
-		else if(frames[p].dirty == 1)
+		else if(frames[p]->dirty == 1)
 		{
 			fprintf(logfile, "D"); fflush(logfile);
 		}
@@ -378,11 +377,11 @@ void printFrames()
 	//used loop
 	for(p = 0; p < 256; p++)
 	{
-		if(frames[p].used == 0)
+		if(frames[p]->used == 0)
                 {
                         fprintf(logfile, "0"); fflush(logfile);
                 }
-                else if(frames[p].used == 1)
+                else if(frames[p]->used == 1)
                 {
                         fprintf(logfile, "1"); fflush(logfile);
                 }
@@ -421,22 +420,22 @@ void suspendedCheck(Queue* queue)
 	while(1)
 	{
 		//not used
-		if(frames[frameIndex].used == 0)
+		if(frames[frameIndex]->used == 0)
 		{
-			if(frames[frameIndex].dirty == 1)
+			if(frames[frameIndex]->dirty == 1)
 			{
 				reqtime = reqtime + 15000000;
 			}
 
-			frames[frameIndex].used = 1;
-			frames[frameIndex].dirty = 0;
-			frames[frameIndex].pageNumber = myMsg.ref.pageNumber;
-			frames[frameIndex].offset = myMsg.ref.offset;
+			frames[frameIndex]->used = 1;
+			frames[frameIndex]->dirty = 0;
+			frames[frameIndex]->pageNumber = myMsg.ref.pageNumber;
+			frames[frameIndex]->offset = myMsg.ref.offset;
 			
 			//if isDirty == 1, reset frame dirty = 1
 			if(isDirty == 1)
 			{
-				frames[frameIndex].dirty = 1;
+				frames[frameIndex]->dirty = 1;
 			}
 			
 			frameIndex = frameIndex + 1;
@@ -449,9 +448,9 @@ void suspendedCheck(Queue* queue)
 			break;
 		}
 		//used
-		else if(frames[frameIndex].used == 1)
+		else if(frames[frameIndex]->used == 1)
 		{
-			frames[frameIndex].used = 0;
+			frames[frameIndex]->used = 0;
 		
 			frameIndex = frameIndex + 1;
 			//reset frame index  if == 256
@@ -462,20 +461,20 @@ void suspendedCheck(Queue* queue)
 
 		}	
 		//terminated process
-		else if(frames[frameIndex].used == -1)
+		else if(frames[frameIndex]->used == -1)
 		{
-			frames[frameIndex].used = 1;
-			frames[frameIndex].dirty = 0;
-			frames[frameIndex].pageNumber = mymsg.ref.pageNumber;
-			frames[frameIndex].offset = myMsg.ref.offset;
+			frames[frameIndex]->used = 1;
+			frames[frameIndex]->dirty = 0;
+			frames[frameIndex]->pageNumber = myMsg.ref.pageNumber;
+			frames[frameIndex]->offset = myMsg.ref.offset;
 
 			//if isDirty == 1, reset frame dirty = 1
 			if(isDirty == 1)
 			{
-				frames[frameIndex].dirty = 1;
+				frames[frameIndex]->dirty = 1;
 			}
 	
-			frameIndex = frameIndex = 1;
+			frameIndex = frameIndex + 1;
 			//reset frame index if == 256
 			if(frameIndex == 256)
 			{
@@ -490,7 +489,7 @@ void suspendedCheck(Queue* queue)
 	//check message to increase the clock based on reqtime value
 	if(sharedClock->nanoseconds + reqtime > 1000000000)
 	{
-		sharedClock-seconds = sharedClock->seconds + 1;
+		sharedClock->seconds = sharedClock->seconds + 1;
 		sharedClock->nanoseconds = sharedClock->nanoseconds + reqtime - 1000000000;
 		//a second has passed in veritual clock -- print frame info
 		printfFrames();
@@ -522,21 +521,6 @@ void suspendedCheck(Queue* queue)
 
 }
 
-//function to get next spawn time
-int getSpawnTime()
-{
-	int spawnTime;
-	int sec = MAXTIMEBETWEENNEWPROCSSECS;
-	int nano = MAXTIMEBETWEENNEWPROCSNS;
-	//srand(time(NULL));
-	sec = sec * 1000000001;
-			
-	spawnTime = rand() % (sec - nano) + nano;
-	spawnTime = spawnTime/1000;
-	
-	return spawnTime;
-}
-
 //function for exiting on ctrl-C
 void int_Handler(int sig)
 {
@@ -558,9 +542,9 @@ void alarm_Handler(int sig)
 {
 	int i;
 	printf("Alarm! Time is UP!\n");
-	for(i = 0; i < numberOfSlaveProcesses; i++)
+	for(i = 0; i < 18; i++)
 	{
-		kill(slave[i].slaveID, SIGINT);	
+		//kill stuff
 	}
 }
 
@@ -650,7 +634,7 @@ int isEmpty(struct Queue* queue)
 }
 
 //add item to queue
-void enqueue(struct Queue* queue, int item)
+void enqueue(struct Queue* queue, Message item)
 {
         if(isFull(queue))
         {
@@ -666,15 +650,18 @@ void enqueue(struct Queue* queue, int item)
 }
 
 //remove item from queue
-int dequeue(struct Queue* queue)
+Message dequeue(struct Queue* queue)
 {
         if(isEmpty(queue))
         {
-                return INT_MIN;
+		//create empty message with terminate flag on so it wont do anything
+		Message empty;
+		empty.terminate = 1;
+                return empty;
         }
         else
         {
-                int item = queue->array[queue->front];
+                Message item = queue->array[queue->front];
                 queue->front = (queue->front + 1)%queue->capacity;
                 queue->size = queue->size - 1;
                 return item;
