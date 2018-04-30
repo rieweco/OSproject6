@@ -22,7 +22,22 @@
 #define MAX_LINES 100000
 #define MAX_RUNNING_PROCESSES 18
 
-
+//function definitions
+void printFrames();
+void suspendedCheck(Queue* queue);
+int getSpawnTime();
+void int_Handler(int sig);
+void alarm_Handler(int sig);
+int detachAndRemove(int shmid, void *shmaddr);
+pid_t r_wait(int* stat_loc);
+void programRunSettingsPrint(char *file, int runtime, int verb, int proc);
+void helpOptionPrint();
+struct Queue* generateQueue(unsigned capacity);
+int isFull(struct Queue* queue);
+int isEmpty(struct Queue* queue);
+void enqueue(struct Queue* queue, int item);
+int dequeue(struct Queue* queue);
+int front(struct Queue* queue);
 
 
 //globals
@@ -212,12 +227,12 @@ int main(int argc, char *argv[])
 					fflush(logfile);
 					
 				}
-
+				
 				//user process
 				else
 				{
 					char numberBuffer[10];
-					snprintf(numberBuffer, 10,"%d", activeUserProcesses);
+					snprintf(numberBuffer, 10,"%d", j);
 					execl("./user","./user",numberBuffer,NULL);
 				}
 
@@ -248,6 +263,11 @@ int main(int argc, char *argv[])
 					fprintf(logfile, "OSS: Child %ld has completed its run and terminated!\n",messageChk.pid); fflush(logfile);
 					activeUserProcesses--;
 					procArray[messageChk.index] = 0;
+					if(verbose ==1)
+					{
+						printFrames();
+					}
+		
 					//wait for process to finish
 					waitpid(messageChk.pid,0,WUNTRACED);
 				}
@@ -285,16 +305,31 @@ int main(int argc, char *argv[])
 						{
 							fprintf(logfile,"OSS: Sending msg to allow Process %ld's request for page %d with offset %d.\n",messageChk.pid, messageChk.pageNumber, messageChk.offset); fflush(logfile);
 						}	
-					}
+					
 
-					for(q = 0; q < 256; q++)
-					{
-						if(frames[q].used != -1)
+						for(q = 0; q < 256; q++)
 						{
-							if(frames[q].pageNumber == messageChk.ref.pageNumber && frames[q].offset == messageChk[q].ref.offset)
+							if(frames[q].used != -1)
 							{
-								
+								if(frames[q].pageNumber == messageChk.ref.pageNumber && frames[q].offset == messageChk[q].ref.offset)
+								{
+									//set frame to used/dirty based on message
+									if(messageChk[q].dirty == 1)
+									{
+										frames[q].dirty = 1;
+									}	
+									frames[q].used = 1;
+								}
 							}
+						}
+					}
+					//reference not found -- add request to queue
+					else
+					{
+						enqueue(msgQueue, messageChk);
+						if(verbose == 1)
+						{
+							fprintf(logfile, "OSS: Reference not found! Adding Reference to Queue!\n"); fflush(logfile);
 						}
 					}
 				}
@@ -306,70 +341,8 @@ int main(int argc, char *argv[])
 
 		}
 
-
-
-
-
-
-
-
-
-
-
 	}
-		
-
 	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	return 0;
 
 }
@@ -620,11 +593,20 @@ pid_t r_wait(int* stat_loc)
 
 
 //program run settings display function
-void programRunSettingsPrint(char *file, int runtime)
+void programRunSettingsPrint(char *file, int runtime, int verb, int proc)
 {
         printf("Program Run Settings:\n"); 
         fprintf(stderr,"       Log File Name:          %s\n", file);
         fprintf(stderr,"       Max Run Time:           %d\n", runtime);
+	if(verb == 1)
+	{
+		fprintf(stderr,"       Verbose Logging:	       ON\n");
+	}
+	else
+	{
+		fprintf(stderr,"       Verbose Logging:        OFF\n");
+	}
+	fprintf(stderr,"       Max # of Processes:     %d\n", proc);
 }
 
 
@@ -634,6 +616,8 @@ void helpOptionPrint()
         printf("program help:\n"); 
         printf("        use option [-l filename] to set the filename for the logfile(where filename is the name of the logfile).\n");
         printf("        use option [-t z] to set the max time the program will run before terminating all processes (where z is the time in seconds, default: 20 seconds).\n");
+	printf("	use option [-v] to enable Verbose Logging (more descriptive writes to logfile).\n");
+	printf("	use option [-u z] to set the max number of user processes allowed to run at one time. Hard Cap set to 18. If more than 18 is entered, sets to 18.\n");
         printf("        NOTE: PRESS CTRL-C TO TERMINATE PROGRAM ANYTIME.\n");
         exit(0);
 }
