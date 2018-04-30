@@ -5,6 +5,8 @@
 //shared memory keys
 #define CLOCK_KEY 1400
 #define PAGE_KEY 1000
+#define REQ_MSG_KEY 1337
+#define MASTER 200
 
 //struct clock: holds seconds and nanoseconds
 typedef struct Clock
@@ -41,6 +43,7 @@ typedef struct Message
 	int index;
 	int dirty;
 	int terminate;
+	Reference ref;
 }
 Message;
 
@@ -48,6 +51,7 @@ Message;
 typedef struct Reference
 {
 	int pageNumber;
+	int offset;
 }
 Reference;
 
@@ -58,8 +62,20 @@ typedef struct Frames
 	int index;
 	int used;
 	int pageNumber;
+	int offset;
 }
 Frames;
+
+//queue for suspended processes
+typedef struct Queue
+{
+	int front;
+	int rear;
+	int size;
+	unsigned capacity;
+	Message msg;
+}
+Queue;
 
 
 #endif
