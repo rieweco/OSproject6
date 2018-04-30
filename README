@@ -13,7 +13,9 @@ output goes to file named 'logfile'
 the name of logfile can be changed using -l command
 change number of user processes by -u option
 --------------------------------------------------------
-
+*******
+submitting for parital credit. will continue working for the next day to resubmit if i can.
+*******
 
 --------------------------------------------------------
 added structs to node.h, got getopt done in oss.c, initialized user.c.
