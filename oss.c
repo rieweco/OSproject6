@@ -23,7 +23,7 @@
 #define MAX_RUNNING_PROCESSES 18
 
 //function definitions
-void printFrames();
+static void printFrames();
 void suspendedCheck(Queue* queue);
 void int_Handler(int sig);
 void alarm_Handler(int sig);
@@ -36,7 +36,7 @@ int isFull(struct Queue* queue);
 int isEmpty(struct Queue* queue);
 void enqueue(struct Queue* queue, Message item);
 Message dequeue(struct Queue* queue);
-int front(struct Queue* queue);
+//Message front(struct Queue* queue);
 
 
 //globals
@@ -184,6 +184,7 @@ int main(int argc, char *argv[])
 		}
 		
 		int currentTime = ((sharedClock->seconds * 1000000000) + sharedClock->nanoseconds);
+		spawnTime = currentTime;
 		//check current time to spawn new user process
 		if(currentTime >= spawnTime)
 		{
@@ -238,7 +239,7 @@ int main(int argc, char *argv[])
 				}
 
 			}
-
+			printf("Message Check...\n");
 			//check message Q
 			Message messageChk;
 			if((haveMsg = msgrcv(msgQueue, &messageChk, sizeof(Message), MASTER, IPC_NOWAIT)) == -1)
@@ -349,7 +350,7 @@ int main(int argc, char *argv[])
 }
 
 //function to print out frame info
-void printFrames()
+static void printFrames()
 {
 	int p;
 	fprintf(logfile, "Frame Info:\n"); fflush(logfile);
@@ -492,11 +493,11 @@ void suspendedCheck(Queue* queue)
 		sharedClock->seconds = sharedClock->seconds + 1;
 		sharedClock->nanoseconds = sharedClock->nanoseconds + reqtime - 1000000000;
 		//a second has passed in veritual clock -- print frame info
-		printfFrames();
+		printFrames();
 	}
 	else
 	{
-		sharedClock->nanoseconds = sharedClock-nanoseconds + reqtime;
+		sharedClock->nanoseconds = sharedClock->nanoseconds + reqtime;
 	}
 
 	int sec = sharedClock->seconds;
@@ -507,7 +508,7 @@ void suspendedCheck(Queue* queue)
 
 	//intiilize message for sending
 	Message childUpdate;
-	childMessage.type = (long)myMsg.index;
+	childUpdate.type = (long)myMsg.index;
 	
 	if(msgsnd(msgQueue, &childUpdate, sizeof(Message), 1) == -1)
 	{
@@ -516,7 +517,7 @@ void suspendedCheck(Queue* queue)
 	}
 	else
 	{
-		fprintf(logfile, "OSS: Allowing process %ld reference to page: %d, with offset: %d after being suspended.\n",myMsg.pid, ,myMsg.ref.pageNumber, myMsg.ref.offset); fflush(logfile);
+		fprintf(logfile, "OSS: Allowing process %ld reference to page: %d, with offset: %d after being suspended.\n",myMsg.pid, myMsg.ref.pageNumber, myMsg.ref.offset); fflush(logfile);
 	}
 
 }
@@ -526,11 +527,12 @@ void int_Handler(int sig)
 {
 	logfile = fopen(filename,"a");
        	signal(sig, SIG_IGN);
-	fprintf(logfile,"\nOSS: Program terminated");
+	/*fprintf(logfile,"\nOSS: Program terminated");
 	fprintf(logfile,"\nOSS: Turnaround = 250039 ns");
 	fprintf(logfile,"\nOSS: Wait Time = 15000000 ns");
 	fprintf(logfile,"\nOSS: Sleep Time = 1002304 ns");
-	fprintf(logfile,"\nOSS: Idle Time = 178303 ns");
+	fprintf(logfile,"\nOSS: Idle Time = 178303 ns");*/
+	fprintf(logfile,"\nOSS: Program Terminated!");
 	fclose(logfile);
         printf("Program terminated using Ctrl-C\n");
         exit(0);
@@ -617,7 +619,7 @@ struct Queue* generateQueue(unsigned capacity)
         queue->capacity = capacity;
         queue->front = queue->size = 0;
         queue->rear = capacity - 1;
-        queue->array = (int*)malloc(queue->capacity * sizeof(int));
+        queue->msg = (Message*)malloc(queue->capacity * sizeof(Message));
         return queue;
 }
 
@@ -643,9 +645,9 @@ void enqueue(struct Queue* queue, Message item)
         else
         {
                 queue->rear = (queue->rear+1)%queue->capacity;
-                queue->array[queue->rear] = item;
+                queue->msg[queue->rear] = item;
                 queue->size = queue->size + 1;
-                printf("%d added to queue\n", item);
+                printf("%d added to queue\n", item.index);
         }
 }
 
@@ -661,15 +663,16 @@ Message dequeue(struct Queue* queue)
         }
         else
         {
-                Message item = queue->array[queue->front];
+                Message item = queue->msg[queue->front];
                 queue->front = (queue->front + 1)%queue->capacity;
                 queue->size = queue->size - 1;
                 return item;
         }
 }
 
+/*
 //get to front of queue
-int front(struct Queue* queue)
+Message front(struct Queue* queue)
 {
         if(isEmpty(queue))
         {
@@ -677,11 +680,11 @@ int front(struct Queue* queue)
         }
         else
         {
-                return queue->array[queue->front];
+                return queue->msg[queue->front];
         }
 }
 
-
+*/
 
 
 

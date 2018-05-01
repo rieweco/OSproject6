@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 			newMessage.terminate = 1;
 			newMessage.pid = getpid();
 			
-			msgsnd(msgQueue, newMessage, sizeof(Message), 1);
+			msgsnd(msgQueue, &newMessage, sizeof(Message), 1);
 			
 			return 0;
 		}
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
                                 newMessage.index = processNum;
                         	newMessage.terminate = 1;
                         	newMessage.pid = getpid();
-                       		msgsnd(msgQueue, newMessage, sizeof(Message), 1);
+                       		msgsnd(msgQueue, &newMessage, sizeof(Message), 1);
 			}
 			else 
 			{
@@ -130,10 +130,10 @@ int main(int argc, char *argv[])
 					newMessage.dirty = 1;
 				}
 				
-				printf("User: Process %d is requesting Page# %d with offset: %d from OSS!\n", newMessage.pid, newMessage.ref.pageNumber, newMessage.red.offset);
+				printf("User: Process %d is requesting Page# %d with offset: %d from OSS!\n", newMessage.pid, newMessage.ref.pageNumber, newMessage.ref.offset);
 
 				//send message for page request
-				msgsnd(msgQueue, newMessage, sizeof(Message), 1);
+				msgsnd(msgQueue, &newMessage, sizeof(Message), 1);
 			}
 		}
 

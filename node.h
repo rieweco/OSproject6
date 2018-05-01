@@ -72,7 +72,7 @@ typedef struct Queue
 	int rear;
 	int size;
 	unsigned capacity;
-	Message msg;
+	Message* msg;
 }
 Queue;
 

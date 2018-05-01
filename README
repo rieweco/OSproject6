@@ -14,7 +14,14 @@ the name of logfile can be changed using -l command
 change number of user processes by -u option
 --------------------------------------------------------
 *******
-submitting for parital credit. will continue working for the next day to resubmit if i can.
+submitting for parital credit.
+This project does compile, but is not funcitonig properly. 
+
+This project does not work like it is supposed to. running the program will generate 18 processes and create messages
+in a queue, but will not access them in the children nodes for some reason. I believe that the children are looking for
+the wrong message id, so it is not working. 
+
+Thank you for readin this before running.
 *******
 
 --------------------------------------------------------

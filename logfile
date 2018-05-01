@@ -1,0 +1,26 @@
+OSS: Initializing Logfile!
+OSS: Beginning Memory Management Protocol...
+OSS: User process spawned! Number of User Processes now: 1
+OSS: User process spawned! Number of User Processes now: 2
+OSS: User process spawned! Number of User Processes now: 3
+OSS: User process spawned! Number of User Processes now: 4
+OSS: User process spawned! Number of User Processes now: 5
+OSS: User process spawned! Number of User Processes now: 6
+OSS: User process spawned! Number of User Processes now: 7
+OSS: User process spawned! Number of User Processes now: 8
+OSS: User process spawned! Number of User Processes now: 9
+OSS: User process spawned! Number of User Processes now: 10
+OSS: User process spawned! Number of User Processes now: 11
+OSS: User process spawned! Number of User Processes now: 12
+OSS: User process spawned! Number of User Processes now: 13
+OSS: User process spawned! Number of User Processes now: 14
+OSS: User process spawned! Number of User Processes now: 15
+OSS: User process spawned! Number of User Processes now: 16
+OSS: User process spawned! Number of User Processes now: 17
+OSS: User process spawned! Number of User Processes now: 18
+
+OSS: Program terminated
+OSS: Turnaround = 250039 ns
+OSS: Wait Time = 15000000 ns
+OSS: Sleep Time = 1002304 ns
+OSS: Idle Time = 178303 ns
